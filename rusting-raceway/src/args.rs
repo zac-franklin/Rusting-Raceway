@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use clap::{Arg, Command, ArgAction, crate_version, crate_name};
 
-/// Contorls dynamic user input required to run the game in the desired way.
+/// Controls dynamic user input required to run the game in the desired way.
 #[derive(Resource)]
 pub struct UserInput {
     /// runs the game in local mode

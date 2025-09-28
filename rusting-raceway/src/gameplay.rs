@@ -72,6 +72,10 @@ pub fn move_players(
 
         let move_speed = 7.;
         let move_delta = direction * move_speed * time.delta_secs();
+
+        // transform.translation expects a 3d Vec3 so, extend our 2d Vec2 
+        // into a 3d Vec3 by setting the z component to 0 since we are in 2d land
+        // https://docs.rs/bevy/latest/bevy/math/struct.Vec2.html#method.extend
         transform.translation += move_delta.extend(0.);
     }
 }

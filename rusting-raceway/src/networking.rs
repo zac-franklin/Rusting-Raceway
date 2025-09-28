@@ -22,6 +22,9 @@ pub fn wait_for_players(mut commands: Commands, mut socket: ResMut<MatchboxSocke
         return; // we've already started
     }
 
+    // Controls the amount of frames GGRS will delay the inputs for local players
+    const LOCAL_INPUT_DELAY_FRAMES: usize = 2;
+
     // Check for new connections
     socket.update_peers();
     let players = socket.players();
@@ -32,12 +35,12 @@ pub fn wait_for_players(mut commands: Commands, mut socket: ResMut<MatchboxSocke
         return; // wait for more players
     }
 
-    info!("All peers have joined, chanign state to in-game");
+    info!("All peers have joined, changing state to in-game");
 
     // create a GGRS P2P session
     let mut session_builder = ggrs::SessionBuilder::<Config>::new()
         .with_num_players(num_players)
-        .with_input_delay(2); 
+        .with_input_delay(LOCAL_INPUT_DELAY_FRAMES); 
 
     //TODO: Error handling.
     for (i, player) in players.into_iter().enumerate() {

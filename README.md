@@ -22,7 +22,7 @@ cargo build --release
 # Run
 ## With Matchmaking
 - Open Three terminals.
-- In Teremina 1 start the matchbox server: 
+- In Terminal 1 start the matchbox server: 
 ```
 matchbox_server
 ```
@@ -43,7 +43,7 @@ cargo run
 cargo run -- -l
 ```
 
-# Usesful sources
+# Useful sources
 ## Multiplayer
 The multiplayer code in this game follows: https://johanhelsing.studio/posts/extreme-bevy
 
