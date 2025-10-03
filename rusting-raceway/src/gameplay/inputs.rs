@@ -1,4 +1,4 @@
-use super::networking;
+use crate::networking;
 use bevy::{platform::collections::HashMap, prelude::*};
 use bevy_ggrs::{LocalInputs, LocalPlayers};
 
@@ -37,5 +37,5 @@ pub fn read_local_inputs(
         local_inputs.insert(*handle, input);
     }
 
-    commands.insert_resource(LocalInputs::<networking::Config>(local_inputs));
+    commands.insert_resource(LocalInputs::<networking::networking::Config>(local_inputs));
 }

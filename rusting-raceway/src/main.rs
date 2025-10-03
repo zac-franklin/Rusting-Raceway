@@ -1,6 +1,10 @@
-use rusting_raceway::{args, gameplay, inputs, networking, states};
+// Bevy imports
 use bevy::prelude::*;
 use bevy_ggrs::prelude::*;
+use bevy_polyline::PolylinePlugin;
+
+// Imports
+use rusting_raceway::{args, gameplay, networking};
 
 fn main() {
     // Read CMD args
@@ -9,35 +13,46 @@ fn main() {
     App::new()
         .add_plugins((
             DefaultPlugins.set(WindowPlugin {
-                primary_window: Some(Window {
-                    // fill the entire browser window
-                    fit_canvas_to_parent: true,
-                    // don't hijack keyboard shortcuts like F5, F6, F12, Ctrl+R etc.
-                    prevent_default_event_handling: false,
-                    ..default()
-                }),
+                primary_window: Some(
+                    Window {
+                        // fill the entire browser window
+                        fit_canvas_to_parent: true,
+                        // don't hijack keyboard shortcuts like F5, F6, F12, Ctrl+R etc.
+                        prevent_default_event_handling: false,
+                        ..default()
+                    }
+                ),
                 ..default()
             }),
-            GgrsPlugin::<networking::Config>::default(),
+            GgrsPlugin::<networking::networking::Config>::default(),
+            PolylinePlugin,
         ))
-        .init_state::<states::GameState>()
+        .init_state::<networking::states::GameState>()
         .rollback_component_with_clone::<Transform>()
         .insert_resource(args)
         .insert_resource(ClearColor(Color::srgb(0.53, 0.53, 0.53)))
+        //.init_resource::<PlayerScore>() 
+        .init_resource::<gameplay::components::Stadium>() 
         .add_systems(
             Startup, //This will eventual move to OnEnter(GameState::Matchmaking)
-            (gameplay::setup, gameplay::spawn_player, networking::start_matchbox_socket.run_if(p2p_mode))
+            (
+                gameplay::gameplay::setup_camera,
+                gameplay::gameplay::spawn_stadium, 
+                gameplay::gameplay::spawn_player_tracks,
+                networking::networking::start_matchbox_socket.run_if(p2p_mode)
+            )
         )
-        .add_systems(
+        // TODO: uncomment and incorporate gameplay functions
+        /*.add_systems(
             Update, 
             (
-                networking::wait_for_players.run_if(p2p_mode),
-                networking::start_synctest_session.run_if(local_mode),
+                networking::networking::wait_for_players.run_if(p2p_mode),
+                networking::networking::start_synctest_session.run_if(local_mode),
             )
-                .run_if(in_state(states::GameState::Matchmaking))
-        )
-        .add_systems(ReadInputs, inputs::read_local_inputs)
-        .add_systems(GgrsSchedule, gameplay::move_players) 
+                .run_if(in_state(networking::states::GameState::Matchmaking))
+        )*/
+        //.add_systems(ReadInputs, inputs::read_local_inputs)
+        //.add_systems(GgrsSchedule, gameplay::move_players) 
         .run();
 }
 
