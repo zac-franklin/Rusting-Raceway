@@ -1,6 +1,7 @@
 use rusting_raceway::{args, gameplay, inputs, networking, states};
 use bevy::prelude::*;
 use bevy_ggrs::prelude::*;
+use bevy_polyline::PolylinePlugin;
 
 fn main() {
     // Read CMD args
@@ -19,6 +20,7 @@ fn main() {
                 ..default()
             }),
             GgrsPlugin::<networking::Config>::default(),
+            PolylinePlugin,
         ))
         .init_state::<states::GameState>()
         .rollback_component_with_clone::<Transform>()
@@ -26,7 +28,13 @@ fn main() {
         .insert_resource(ClearColor(Color::srgb(0.53, 0.53, 0.53)))
         .add_systems(
             Startup, //This will eventual move to OnEnter(GameState::Matchmaking)
-            (gameplay::setup, gameplay::spawn_player, networking::start_matchbox_socket.run_if(p2p_mode))
+            (
+                gameplay::setup_camera,
+                gameplay::spawn_stadium, 
+                gameplay::spawn_player_tracks,
+                gameplay::spawn_player,
+                networking::start_matchbox_socket.run_if(p2p_mode)
+            )
         )
         .add_systems(
             Update, 
