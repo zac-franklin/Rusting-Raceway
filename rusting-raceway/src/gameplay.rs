@@ -33,15 +33,15 @@ pub fn spawn_stadium(
     let length = 500.0;
     let inner_radius = 225.0;
     let radius_ratio = 2.0; // ratio between inner and outer radius
-    let section_size: u32 = 20;
-    debug_assert!(section_size % 2 == 0, "Section size needs to be even to preserve symmetry");
+    let bend_sections: u32 = 20;
+    debug_assert!(bend_sections % 2 == 0, "Section size needs to be even to preserve symmetry");
 
     // Spawn grass
     let grass_color = Color::hsl(99.0, 0.66, 0.55);
     commands.spawn(PolylineBundle {
         polyline: PolylineHandle(polylines.add(Polyline { 
             vertices: physics::determine_track_points(
-                length, inner_radius, section_size
+                length, inner_radius, bend_sections
             )
         })),
         material: PolylineMaterialHandle(polyline_materials.add(PolylineMaterial {
@@ -58,7 +58,7 @@ pub fn spawn_stadium(
     commands.spawn(PolylineBundle {
         polyline: PolylineHandle(polylines.add(Polyline { 
             vertices: physics::determine_track_points(
-                length, radius_ratio * inner_radius, section_size
+                length, radius_ratio * inner_radius, bend_sections
             )
         })),
         material: PolylineMaterialHandle(polyline_materials.add(PolylineMaterial {
@@ -77,15 +77,13 @@ pub fn spawn_player_tracks(
     mut polyline_materials: ResMut<Assets<PolylineMaterial>>,
     mut polylines: ResMut<Assets<Polyline>>,
 ) {
-    let length = 500.0;
+    let length = 500.0;  // length of horizontal section (stadium)
     let inner_radius = 225.0;
-    let radius_ratio = 2.0; // ratio between inner and outer radius
     let num_tracks = 4;
-    let section_size: u32 = 20;
-    debug_assert!(section_size % 2 == 0, "Section size needs to be even to preserve symmetry");
+    let bend_sections: u32 = 20;
+    debug_assert!(bend_sections % 2 == 0, "Section size needs to be even to preserve symmetry");
 
-    let ratio_difference = radius_ratio - 1.0;
-    let ratio_increase = ratio_difference / (num_tracks as f32 + 1.0);
+    let ratio_increase = 1.0 / (num_tracks as f32 + 1.0);
     let color = Color::hsl(35.0, 0.69, 0.32);
 
     // Iterate over individual tracks and spawn them
@@ -97,7 +95,7 @@ pub fn spawn_player_tracks(
         commands.spawn(PolylineBundle {
             polyline: PolylineHandle(polylines.add(Polyline { 
                 vertices: physics::determine_track_points(
-                    length, radius, section_size
+                    length, radius, bend_sections
                 )
             })),
             material: PolylineMaterialHandle(polyline_materials.add(PolylineMaterial {
