@@ -11,9 +11,9 @@ pub fn determine_incremental_rotation_angle(bend_sections: u32) -> f32 {
     angle_turn / bend_sections as f32
 }
 
-/// Determines the bend speed needed to travel a distance equal to the
-/// perimeter of a half circle in a number of steps equal to the section size
-pub fn determine_bend_length(radius: f32, bend_sections: u32) -> f32 {
+/// Determines the bend section speed needed to travel a distance equal to the
+/// perimeter of a half circle in a number of steps equal to the bend sections
+pub fn determine_bend_section_length(radius: f32, bend_sections: u32) -> f32 {
     if !(bend_sections > 0) {
         return 0.0;
     }
@@ -23,7 +23,7 @@ pub fn determine_bend_length(radius: f32, bend_sections: u32) -> f32 {
 /// Determines stadium path from its length, radius and section size
 pub fn determine_track_points(length: f32, radius: f32, bend_sections: u32) -> Vec<Vec3> {
     let incremental_rotation_angle = determine_incremental_rotation_angle(bend_sections);
-    let bend_length = determine_bend_length(radius, bend_sections);
+    let bend_section_length = determine_bend_section_length(radius, bend_sections);
 
     // We determine the inner points of the top left half and then reflect the results
     // to obtain the other three quadrants
@@ -42,7 +42,7 @@ pub fn determine_track_points(length: f32, radius: f32, bend_sections: u32) -> V
     for _ in (0..bend_sections).step_by(2) {
         angle += incremental_rotation_angle;
         let direction = Vec2::from_angle(angle.to_radians()).extend(0.0);
-        position += direction * bend_length;
+        position += direction * bend_section_length;
         points.push( position );
     }
 
