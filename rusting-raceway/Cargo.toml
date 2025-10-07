@@ -7,4 +7,5 @@ edition = "2024"
 bevy = "0.16.1"
 bevy_ggrs = "0.18"
 bevy_matchbox = { version = "0.12", features = ["ggrs"] }
+bevy_polyline = "0.12.0"
 clap = { version = "4.5.48", features = ["cargo"] }

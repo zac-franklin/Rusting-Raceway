@@ -4,3 +4,4 @@ pub mod gameplay;
 pub mod inputs;
 pub mod networking;
 pub mod states;
+pub mod physics;
