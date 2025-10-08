@@ -31,8 +31,7 @@ fn main() {
             (
                 gameplay::setup_camera,
                 gameplay::spawn_stadium, 
-                gameplay::spawn_player_tracks,
-                gameplay::spawn_player,
+                gameplay::spawn_players,
                 networking::start_matchbox_socket.run_if(p2p_mode)
             )
         )
@@ -45,7 +44,7 @@ fn main() {
                 .run_if(in_state(states::GameState::Matchmaking))
         )
         .add_systems(ReadInputs, inputs::read_local_inputs)
-        .add_systems(GgrsSchedule, gameplay::move_players) 
+        .add_systems(GgrsSchedule, gameplay::move_players_along_tracks) 
         .run();
 }
 
