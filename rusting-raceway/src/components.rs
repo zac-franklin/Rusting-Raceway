@@ -5,3 +5,11 @@ use bevy::prelude::*;
 pub struct Player {
     pub handle: usize,
 }
+
+// Component used to tag entities added on the game screen
+#[derive(Component)]
+pub struct OnGameScreen;
+
+// Component used to tag entities added on the splash screen
+#[derive(Component)]
+pub struct OnSplashScreen;
