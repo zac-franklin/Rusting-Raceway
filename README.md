@@ -51,5 +51,7 @@ The multiplayer code in this game follows: https://johanhelsing.studio/posts/ext
 - [ ] Error Handling
 - [ ] Tests
 - [ ] Menu screen
+- [ ] Network Plugin
+- [ ] Matchmaking Plugin
 - [ ] Custom WebRTC server
 - [ ] Production servers 
