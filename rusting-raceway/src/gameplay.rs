@@ -27,7 +27,6 @@ pub fn setup_camera(mut commands: Commands) {
 /// Spawn stadium
 pub fn spawn_stadium(
     mut commands: Commands, 
-    mut paths: ResMut<resources::Paths>,
     mut polyline_materials: ResMut<Assets<PolylineMaterial>>,
     mut polylines: ResMut<Assets<Polyline>>,
 ) {
@@ -76,6 +75,7 @@ pub fn spawn_stadium(
     // Spawn individual tracks
     let ratio_increase = 1. / (num_tracks as f32 + 1.);
     let track_color = Color::hsl(35.0, 0.69, 0.32);
+    let mut paths = Vec::new();
     for track_id in 0..num_tracks {
         // Determine points
         let ratio = 1. + (track_id as f32 + 1.) * ratio_increase;
@@ -99,8 +99,11 @@ pub fn spawn_stadium(
         });
 
         // Store points
-        paths.0.push(vertices);
+        paths.push(vertices);
     }
+
+    // Store paths in resource
+    commands.insert_resource(resources::Paths(paths));
 }
 
 /// Spawn players with GGRS Rollback
