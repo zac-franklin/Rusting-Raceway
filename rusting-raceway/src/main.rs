@@ -1,4 +1,4 @@
-use rusting_raceway::{args, gameplay, inputs, networking, states};
+use rusting_raceway::{args, gameplay, inputs, networking, states, resources};
 use bevy::prelude::*;
 use bevy_ggrs::prelude::*;
 use bevy_polyline::PolylinePlugin;
@@ -26,6 +26,7 @@ fn main() {
         .rollback_component_with_clone::<Transform>()
         .insert_resource(args)
         .insert_resource(ClearColor(Color::srgb(0.53, 0.53, 0.53)))
+        .init_resource::<resources::Paths>()
         .add_systems(
             Startup, //This will eventual move to OnEnter(GameState::Matchmaking)
             (
