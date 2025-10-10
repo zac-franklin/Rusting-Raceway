@@ -73,7 +73,7 @@ pub fn spawn_stadium(
         ..default()
     });
 
-    // Iterate over individual tracks and spawn them
+    // Spawn individual tracks
     let ratio_increase = 1. / (num_tracks as f32 + 1.);
     let track_color = Color::hsl(35.0, 0.69, 0.32);
     for track_id in 0..num_tracks {
@@ -103,7 +103,7 @@ pub fn spawn_stadium(
     }
 }
 
-/// Spawn players with GGRS Rollback and their tracks (paths)
+/// Spawn players with GGRS Rollback
 pub fn spawn_players(
     mut commands: Commands,
     mut materials: ResMut<Assets<StandardMaterial>>,
