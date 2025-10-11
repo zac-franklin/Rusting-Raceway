@@ -38,8 +38,8 @@ pub fn determine_track_points(length: f32, radius: f32, bend_sections: u32) -> V
     let mut angle = -180.0;
     let mut position = Vec3 { x: -length / 2.0, y: radius, z: 0.0 };
     // Since we only want the upper left quadrant, we only need to go up to half 
-    // the number of sections in the curve
-    for _ in (0..bend_sections).step_by(2) {
+    // the number of sections in the curve. To avoid backtracking, we start the loop at 2
+    for _ in (2..bend_sections).step_by(2) {
         angle += incremental_rotation_angle;
         let direction = Vec2::from_angle(angle.to_radians()).extend(0.0);
         position += direction * bend_section_length;

@@ -6,7 +6,7 @@ use bevy_ggrs::{LocalInputs, LocalPlayers};
 pub const INPUT_UP: u8 = 1 << 0;
 pub const INPUT_DOWN: u8 = 1 << 1;
 pub const INPUT_LEFT: u8 = 1 << 2;
-pub const INPUT_RIGHT: u8 = 1 << 3;
+pub const INPUT_FORWARD: u8 = 1 << 3;
 
 /// Reads local input, applies OR masks to u8 array based on current input.
 /// adds the input to the GGRS session.
@@ -31,7 +31,7 @@ pub fn read_local_inputs(
             input |= INPUT_LEFT
         }
         if keys.any_pressed([KeyCode::ArrowRight, KeyCode::KeyD]) {
-            input |= INPUT_RIGHT;
+            input |= INPUT_FORWARD;
         }
 
         local_inputs.insert(*handle, input);

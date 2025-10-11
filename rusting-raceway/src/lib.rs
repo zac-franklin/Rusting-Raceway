@@ -4,7 +4,7 @@ pub mod gameplay;
 mod inputs;
 pub mod networking;
 mod physics;
-mod resources;
+pub mod resources;
 pub mod splash;
 pub mod states;
 

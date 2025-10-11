@@ -1,4 +1,4 @@
-use rusting_raceway::{args, gameplay, networking, splash, states};
+use rusting_raceway::{args, gameplay, networking, resources, splash, states};
 use bevy::{prelude::*, render::camera::ScalingMode};
 use bevy_ggrs::prelude::*;
 use bevy_polyline::PolylinePlugin;
@@ -28,20 +28,28 @@ fn main() {
         .insert_resource(ClearColor(Color::srgb(0.53, 0.53, 0.53)))
         .add_systems(
             Startup,
-            setup_camera,
+            (
+                setup_camera,
+                setup_paths,
+            )
         )
         .add_plugins((splash::splash_plugin, gameplay::game_plugin)) 
         .run();
+}
+
+/// Setup paths resource
+pub fn setup_paths(mut commands: Commands) {
+    commands.init_resource::<resources::Paths>();
 }
 
 /// Setup the camera and view.
 fn setup_camera(mut commands: Commands) {
     commands.spawn((
         Camera3d::default(),
-        Transform::from_xyz(0.0, 0.0, 5.0).looking_at(Vec3::ZERO, Vec3::Y),
+        Transform::from_xyz(0., 0., 5.).looking_at(Vec3::ZERO, Vec3::Y),
         Projection::Orthographic(OrthographicProjection {
             scaling_mode: ScalingMode::FixedVertical {
-                viewport_height: 1000.0,
+                viewport_height: 1000.,
             },
             ..OrthographicProjection::default_2d()
         }),
@@ -50,7 +58,7 @@ fn setup_camera(mut commands: Commands) {
     // Light source for 3d rendering
     commands.insert_resource(AmbientLight {
         color: Color::WHITE,
-        brightness: 1_000.0,
+        brightness: 1_000.,
         ..default()
     });
 }
