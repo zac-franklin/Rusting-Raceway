@@ -30,7 +30,8 @@ fn main() {
             Startup, //This will eventual move to OnEnter(GameState::Matchmaking)
             (
                 gameplay::setup_camera,
-                gameplay::spawn_stadium, 
+                gameplay::setup_paths,
+                gameplay::spawn_stadium.after(gameplay::setup_paths), 
                 gameplay::spawn_players.after(gameplay::spawn_stadium),
                 networking::start_matchbox_socket.run_if(p2p_mode)
             )
