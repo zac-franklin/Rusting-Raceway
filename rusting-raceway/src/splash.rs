@@ -20,6 +20,7 @@ fn splash_setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     let icon = asset_server.load("images/bevy_banner.png");
     // Display the logo
     commands.spawn((
+        OnSplashScreen,
         Node {
             display: Display::Flex,
             align_items: AlignItems::Center,
@@ -28,7 +29,6 @@ fn splash_setup(mut commands: Commands, asset_server: Res<AssetServer>) {
             height: Val::Percent(100.0),
             ..default()
         },
-        OnSplashScreen,
         BackgroundColor(BEVY_COLOR),
         children![(
             ImageNode::new(icon),

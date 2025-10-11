@@ -44,6 +44,7 @@ fn spawn_stadium(
     // Spawn grass
     let grass_color = Color::hsl(99.0, 0.66, 0.55);
     commands.spawn((
+        components::OnGameScreen,
         PolylineBundle {
             polyline: PolylineHandle(polylines.add(Polyline { 
                 vertices: physics::determine_track_points(
@@ -60,12 +61,12 @@ fn spawn_stadium(
             )),
             ..default()
         },
-        components::OnGameScreen,
     ));
 
     // Spawn track section
     let track_section_color = Color::hsl(35.0, 0.69, 0.63);
     commands.spawn((
+        components::OnGameScreen,
         PolylineBundle {
             polyline: PolylineHandle(polylines.add(Polyline { 
                 vertices: physics::determine_track_points(
@@ -80,7 +81,6 @@ fn spawn_stadium(
             })),
             ..default()
         },
-        components::OnGameScreen,
     ));
 
     // Spawn individual tracks
@@ -97,6 +97,7 @@ fn spawn_stadium(
 
         // Spawn tracks
         commands.spawn((
+            components::OnGameScreen,
             PolylineBundle {
                 polyline: PolylineHandle(polylines.add(Polyline { 
                     vertices: vertices.clone()
@@ -109,7 +110,6 @@ fn spawn_stadium(
                 })),
                 ..default()
             },
-            components::OnGameScreen,
         ));
 
         // Store points
@@ -132,12 +132,12 @@ fn spawn_players(
     for player_id in 0..num_players {
         let starting_pos = &paths.0[player_id][0];
         commands.spawn((
+            components::OnGameScreen,
             components::Player{ 
                 handle: player_id,
                 pos_index: 0,
                 distance: 0.0
             },
-            components::OnGameScreen,
             Mesh3d(player_shape.clone()),
             MeshMaterial3d(materials.add(player_color)),
             Transform::from_translation(*starting_pos)
