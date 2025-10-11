@@ -5,3 +5,4 @@ pub mod inputs;
 pub mod networking;
 pub mod states;
 pub mod physics;
+pub mod resources;

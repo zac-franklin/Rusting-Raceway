@@ -30,9 +30,9 @@ fn main() {
             Startup, //This will eventual move to OnEnter(GameState::Matchmaking)
             (
                 gameplay::setup_camera,
-                gameplay::spawn_stadium, 
-                gameplay::spawn_player_tracks,
-                gameplay::spawn_player,
+                gameplay::setup_paths,
+                gameplay::spawn_stadium.after(gameplay::setup_paths), 
+                gameplay::spawn_players.after(gameplay::spawn_stadium),
                 networking::start_matchbox_socket.run_if(p2p_mode)
             )
         )
@@ -45,7 +45,7 @@ fn main() {
                 .run_if(in_state(states::GameState::Matchmaking))
         )
         .add_systems(ReadInputs, inputs::read_local_inputs)
-        .add_systems(GgrsSchedule, gameplay::move_players) 
+        .add_systems(GgrsSchedule, gameplay::move_players_along_tracks) 
         .run();
 }
 
