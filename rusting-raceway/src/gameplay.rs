@@ -1,36 +1,33 @@
-use super::{components, inputs, networking, physics, resources};
-use bevy::{prelude::*, render::camera::ScalingMode};
+use super::{args, despawn_screen, components, inputs, networking, physics, resources, states};
+use bevy::prelude::*;
 use bevy_ggrs::prelude::*;
 use bevy_polyline::prelude::*;
 
-/// Setup the camera and view.
-pub fn setup_camera(mut commands: Commands) {
-    commands.spawn((
-        Camera3d::default(),
-        Transform::from_xyz(0., 0., 5.).looking_at(Vec3::ZERO, Vec3::Y),
-        Projection::Orthographic(OrthographicProjection {
-            scaling_mode: ScalingMode::FixedVertical {
-                viewport_height: 1000.,
-            },
-            ..OrthographicProjection::default_2d()
-        }),
-    ));
-
-    // Light source for 3d rendering
-    commands.insert_resource(AmbientLight {
-        color: Color::WHITE,
-        brightness: 1_000.,
-        ..default()
-    });
-}
-
-/// Setup paths resource
-pub fn setup_paths(mut commands: Commands) {
-    commands.init_resource::<resources::Paths>();
+// Game specific setup
+pub fn game_plugin(app: &mut App) {
+    app.add_systems(
+        OnEnter(states::GameState::Matchmaking), //TODO: create a matchmaking screen between game screen and move game setup here to OnEnter(gamestate::InGame)
+            (
+                spawn_stadium, 
+                spawn_players.after(spawn_stadium),
+                networking::start_matchbox_socket.run_if(p2p_mode)
+            )
+        )
+        .add_systems(
+            Update, 
+            (
+                networking::wait_for_players.run_if(p2p_mode),
+                networking::start_synctest_session.run_if(local_mode),
+            )
+                .run_if(in_state(states::GameState::Matchmaking))
+        )
+        .add_systems(ReadInputs, inputs::read_local_inputs)
+        .add_systems(GgrsSchedule, move_players_along_tracks) 
+        .add_systems(OnExit(states::GameState::InGame), despawn_screen::<components::OnGameScreen>);
 }
 
 /// Spawn stadium
-pub fn spawn_stadium(
+fn spawn_stadium(
     mut commands: Commands, 
     mut paths: ResMut<resources::Paths>,
     mut polyline_materials: ResMut<Assets<PolylineMaterial>>,
@@ -46,37 +43,45 @@ pub fn spawn_stadium(
 
     // Spawn grass
     let grass_color = Color::hsl(99.0, 0.66, 0.55);
-    commands.spawn(PolylineBundle {
-        polyline: PolylineHandle(polylines.add(Polyline { 
-            vertices: physics::determine_track_points(
-                length, inner_radius, bend_sections
-            )
-        })),
-        material: PolylineMaterialHandle(polyline_materials.add(PolylineMaterial {
-            width: 3.,
-            color: grass_color.into(),
-            perspective: false,
+    commands.spawn((
+        components::OnGameScreen,
+        PolylineBundle {
+            polyline: PolylineHandle(polylines.add(Polyline { 
+                vertices: physics::determine_track_points(
+                    length, inner_radius, bend_sections
+                )
+            })),
+            material: PolylineMaterialHandle(polyline_materials.add(
+                PolylineMaterial {
+                    width: 3.,
+                    color: grass_color.into(),
+                    perspective: false,
+                    ..default()
+                }
+            )),
             ..default()
-        })),
-        ..default()
-    });
+        },
+    ));
 
     // Spawn track section
     let track_section_color = Color::hsl(35.0, 0.69, 0.63);
-    commands.spawn(PolylineBundle {
-        polyline: PolylineHandle(polylines.add(Polyline { 
-            vertices: physics::determine_track_points(
-                length, radius_ratio * inner_radius, bend_sections
-            )
-        })),
-        material: PolylineMaterialHandle(polyline_materials.add(PolylineMaterial {
-            width: 3.,
-            color: track_section_color.into(),
-            perspective: false,
+    commands.spawn((
+        components::OnGameScreen,
+        PolylineBundle {
+            polyline: PolylineHandle(polylines.add(Polyline { 
+                vertices: physics::determine_track_points(
+                    length, radius_ratio * inner_radius, bend_sections
+                )
+            })),
+            material: PolylineMaterialHandle(polyline_materials.add(PolylineMaterial {
+                width: 3.,
+                color: track_section_color.into(),
+                perspective: false,
+                ..default()
+            })),
             ..default()
-        })),
-        ..default()
-    });
+        },
+    ));
 
     // Spawn individual tracks
     let ratio_increase = 1. / (num_tracks as f32 + 1.);
@@ -91,18 +96,21 @@ pub fn spawn_stadium(
         );
 
         // Spawn tracks
-        commands.spawn(PolylineBundle {
-            polyline: PolylineHandle(polylines.add(Polyline { 
-                vertices: vertices.clone()
-            })),
-            material: PolylineMaterialHandle(polyline_materials.add(PolylineMaterial {
-                width: 3.,
-                color: track_color.into(),
-                perspective: false,
+        commands.spawn((
+            components::OnGameScreen,
+            PolylineBundle {
+                polyline: PolylineHandle(polylines.add(Polyline { 
+                    vertices: vertices.clone()
+                })),
+                material: PolylineMaterialHandle(polyline_materials.add(PolylineMaterial {
+                    width: 3.,
+                    color: track_color.into(),
+                    perspective: false,
+                    ..default()
+                })),
                 ..default()
-            })),
-            ..default()
-        });
+            },
+        ));
 
         // Store points
         paths.0.push(vertices);
@@ -110,7 +118,7 @@ pub fn spawn_stadium(
 }
 
 /// Spawn players with GGRS Rollback
-pub fn spawn_players(
+fn spawn_players(
     mut commands: Commands,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -124,6 +132,7 @@ pub fn spawn_players(
     for player_id in 0..num_players {
         let starting_pos = &paths.0[player_id][0];
         commands.spawn((
+            components::OnGameScreen,
             components::Player{ 
                 handle: player_id,
                 pos_index: 0,
@@ -139,7 +148,7 @@ pub fn spawn_players(
 }
 
 /// Move players along the tracks based on GGRS input
-pub fn move_players_along_tracks(
+fn move_players_along_tracks(
     mut players: Query<(&mut Transform, &mut components::Player)>,
     inputs: Res<PlayerInputs<networking::Config>>,
     paths: Res<resources::Paths>,
@@ -178,4 +187,14 @@ pub fn move_players_along_tracks(
         // Interpolate new position
         transform.translation = last_point.lerp(next_point, player.distance / distance_to_next_point);
     }
+}
+
+/// mode for no network dependencies.
+fn local_mode(args: Res<args::UserInput>) -> bool {
+    args.local_only
+}
+
+/// mode for live networking.
+fn p2p_mode(args: Res<args::UserInput>) -> bool {
+    !args.local_only
 }

@@ -1,5 +1,5 @@
-use rusting_raceway::{args, gameplay, inputs, networking, states};
-use bevy::prelude::*;
+use rusting_raceway::{args, gameplay, networking, resources, splash, states};
+use bevy::{prelude::*, render::camera::ScalingMode};
 use bevy_ggrs::prelude::*;
 use bevy_polyline::PolylinePlugin;
 
@@ -27,34 +27,38 @@ fn main() {
         .insert_resource(args)
         .insert_resource(ClearColor(Color::srgb(0.53, 0.53, 0.53)))
         .add_systems(
-            Startup, //This will eventual move to OnEnter(GameState::Matchmaking)
+            Startup,
             (
-                gameplay::setup_camera,
-                gameplay::setup_paths,
-                gameplay::spawn_stadium.after(gameplay::setup_paths), 
-                gameplay::spawn_players.after(gameplay::spawn_stadium),
-                networking::start_matchbox_socket.run_if(p2p_mode)
+                setup_camera,
+                setup_paths,
             )
         )
-        .add_systems(
-            Update, 
-            (
-                networking::wait_for_players.run_if(p2p_mode),
-                networking::start_synctest_session.run_if(local_mode),
-            )
-                .run_if(in_state(states::GameState::Matchmaking))
-        )
-        .add_systems(ReadInputs, inputs::read_local_inputs)
-        .add_systems(GgrsSchedule, gameplay::move_players_along_tracks) 
+        .add_plugins((splash::splash_plugin, gameplay::game_plugin)) 
         .run();
 }
 
-/// mode for no network dependencies.
-fn local_mode(args: Res<args::UserInput>) -> bool {
-    args.local_only
+/// Setup paths resource
+pub fn setup_paths(mut commands: Commands) {
+    commands.init_resource::<resources::Paths>();
 }
 
-/// mode for live networking.
-fn p2p_mode(args: Res<args::UserInput>) -> bool {
-    !args.local_only
+/// Setup the camera and view.
+fn setup_camera(mut commands: Commands) {
+    commands.spawn((
+        Camera3d::default(),
+        Transform::from_xyz(0., 0., 5.).looking_at(Vec3::ZERO, Vec3::Y),
+        Projection::Orthographic(OrthographicProjection {
+            scaling_mode: ScalingMode::FixedVertical {
+                viewport_height: 1000.,
+            },
+            ..OrthographicProjection::default_2d()
+        }),
+    ));
+
+    // Light source for 3d rendering
+    commands.insert_resource(AmbientLight {
+        color: Color::WHITE,
+        brightness: 1_000.,
+        ..default()
+    });
 }

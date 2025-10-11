@@ -7,3 +7,11 @@ pub struct Player {
     pub pos_index: usize,  // last path point crossed
     pub distance: f32,  // distance traveled since last path point
 }
+
+// Component used to tag entities added on the game screen
+#[derive(Component)]
+pub struct OnGameScreen;
+
+// Component used to tag entities added on the splash screen
+#[derive(Component)]
+pub struct OnSplashScreen;
