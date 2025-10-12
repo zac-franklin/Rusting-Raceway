@@ -3,13 +3,19 @@ use bevy::prelude::*;
 use bevy_ggrs::prelude::*;
 use bevy_polyline::prelude::*;
 
-// Game specific setup
+// Game Plugin
 pub fn game_plugin(app: &mut App) {
-    app.add_systems(
-        OnEnter(states::GameState::Matchmaking), //TODO: create a matchmaking screen between game screen and move game setup here to OnEnter(gamestate::InGame)
+    app
+        .add_systems(
+            OnEnter(states::GameState::Menu),
             (
-                spawn_stadium, 
-                spawn_players.after(spawn_stadium),
+                spawn_stadium,
+            )
+        )
+        .add_systems(
+            OnEnter(states::GameState::Matchmaking), //TODO: create a matchmaking screen between game screen and move game setup here to OnEnter(gamestate::InGame)
+            (
+                spawn_players,
                 networking::start_matchbox_socket.run_if(p2p_mode)
             )
         )

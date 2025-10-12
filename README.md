@@ -50,7 +50,9 @@ The multiplayer code in this game follows: https://johanhelsing.studio/posts/ext
 # TODO
 - [ ] Error Handling
 - [ ] Tests
-- [ ] Menu screen
+- [ ] Add Path as a global resource
+- [ ] Checkout other UI crates
+- [ ] Add Compiled Nonsense to Splash
 - [ ] Network Plugin
 - [ ] Matchmaking Plugin
 - [ ] Custom WebRTC server
