@@ -2,6 +2,7 @@ pub mod args;
 mod components;
 pub mod gameplay;
 mod inputs;
+pub mod menu;
 pub mod networking;
 mod physics;
 pub mod resources;

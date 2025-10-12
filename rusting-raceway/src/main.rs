@@ -1,4 +1,4 @@
-use rusting_raceway::{args, gameplay, networking, resources, splash, states};
+use rusting_raceway::{args, gameplay, menu, networking, resources, splash, states};
 use bevy::{prelude::*, render::camera::ScalingMode};
 use bevy_ggrs::prelude::*;
 use bevy_polyline::PolylinePlugin;
@@ -30,16 +30,22 @@ fn main() {
             Startup,
             (
                 setup_camera,
+                load_font,
                 setup_paths,
             )
         )
-        .add_plugins((splash::splash_plugin, gameplay::game_plugin)) 
+        .add_plugins((splash::splash_plugin, menu::menu_plugin, gameplay::game_plugin)) 
         .run();
 }
 
 /// Setup paths resource
-pub fn setup_paths(mut commands: Commands) {
+fn setup_paths(mut commands: Commands) {
     commands.init_resource::<resources::Paths>();
+}
+
+fn load_font(mut commands: Commands, asset_server: Res<AssetServer>) {
+    let font = asset_server.load("fonts/PolygonParty-3KXM.ttf");
+    commands.insert_resource(resources::FontHandle(font));
 }
 
 /// Setup the camera and view.

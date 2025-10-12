@@ -50,6 +50,6 @@ fn countdown(
     mut timer: ResMut<SplashTimer>,
 ) {
     if timer.tick(time.delta()).finished() {
-        game_state.set(GameState::Matchmaking);
+        game_state.set(GameState::Menu);
     }
 }
