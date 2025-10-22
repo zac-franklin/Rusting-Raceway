@@ -8,8 +8,9 @@ pub fn game_plugin(app: &mut App) {
     app.add_systems(
         OnEnter(states::GameState::Matchmaking), //TODO: create a matchmaking screen between game screen and move game setup here to OnEnter(gamestate::InGame)
             (
-                spawn_stadium, 
-                spawn_players.after(spawn_stadium),
+                calculate_paths,
+                spawn_stadium.after(calculate_paths), 
+                spawn_players.after(calculate_paths),
                 networking::start_matchbox_socket.run_if(p2p_mode)
             )
         )
@@ -26,20 +27,41 @@ pub fn game_plugin(app: &mut App) {
         .add_systems(OnExit(states::GameState::InGame), despawn_screen::<components::OnGameScreen>);
 }
 
+/// Calculate paths
+fn calculate_paths(mut commands: Commands) {
+    let mut paths: resources::Paths = Default::default();
+
+    // Stadium dimensions
+    let length = 500.;
+    let inner_radius = 225.;
+    let bend_sections: u32 = 20;
+    let num_paths = 6; // inner stadium, player tracks, and then outer stadium
+    debug_assert!(bend_sections % 2 == 0, "Section size needs to be even to preserve symmetry");
+    debug_assert!(bend_sections > 2, "Section size needs to be greater than 2");
+
+    // Calculate paths
+    let ratio_increase = 1. / (num_paths as f32 + 1.);
+    for path_no in 0..num_paths {
+        let ratio = 1. + path_no as f32 * ratio_increase;
+        paths.0.push(physics::determine_player_path(
+            bend_sections, 
+            Vec3::new(0., inner_radius * ratio, 0.), 
+            Vec3::new(0., - inner_radius * ratio, 0.),
+            length, 
+            inner_radius * ratio
+        )); 
+    }
+
+    commands.insert_resource(paths);
+}
+
 /// Spawn stadium
 fn spawn_stadium(
     mut commands: Commands, 
-    mut paths: ResMut<resources::Paths>,
+    paths: Res<resources::Paths>,
     mut polyline_materials: ResMut<Assets<PolylineMaterial>>,
     mut polylines: ResMut<Assets<Polyline>>,
 ) {
-    let length = 500.;
-    let inner_radius = 225.;
-    let radius_ratio = 2.; // ratio between inner and outer radius
-    let bend_sections: u32 = 20;
-    let num_tracks = 4;
-    debug_assert!(bend_sections % 2 == 0, "Section size needs to be even to preserve symmetry");
-    debug_assert!(bend_sections > 2, "Section size needs to be greater than 2");
 
     // Spawn grass
     let grass_color = Color::hsl(99.0, 0.66, 0.55);
@@ -47,9 +69,7 @@ fn spawn_stadium(
         components::OnGameScreen,
         PolylineBundle {
             polyline: PolylineHandle(polylines.add(Polyline { 
-                vertices: physics::determine_track_points(
-                    length, inner_radius, bend_sections
-                )
+                vertices: physics::determine_track_points(paths.0[0].clone())
             })),
             material: PolylineMaterialHandle(polyline_materials.add(
                 PolylineMaterial {
@@ -69,9 +89,7 @@ fn spawn_stadium(
         components::OnGameScreen,
         PolylineBundle {
             polyline: PolylineHandle(polylines.add(Polyline { 
-                vertices: physics::determine_track_points(
-                    length, radius_ratio * inner_radius, bend_sections
-                )
+                vertices: physics::determine_track_points(paths.0[paths.0.len() - 1].clone())
             })),
             material: PolylineMaterialHandle(polyline_materials.add(PolylineMaterial {
                 width: 3.,
@@ -84,23 +102,14 @@ fn spawn_stadium(
     ));
 
     // Spawn individual tracks
-    let ratio_increase = 1. / (num_tracks as f32 + 1.);
     let track_color = Color::hsl(35.0, 0.69, 0.32);
-    paths.0.clear();
+    let num_tracks = paths.0.len() - 2; // inner and outer paths
     for track_id in 0..num_tracks {
-        // Determine points
-        let ratio = 1. + (track_id as f32 + 1.) * ratio_increase;
-        let radius = inner_radius * ratio;
-        let vertices = physics::determine_track_points(
-            length, radius, bend_sections
-        );
-
-        // Spawn tracks
         commands.spawn((
             components::OnGameScreen,
             PolylineBundle {
                 polyline: PolylineHandle(polylines.add(Polyline { 
-                    vertices: vertices.clone()
+                    vertices: physics::determine_track_points(paths.0[track_id + 1].clone())
                 })),
                 material: PolylineMaterialHandle(polyline_materials.add(PolylineMaterial {
                     width: 3.,
@@ -111,9 +120,6 @@ fn spawn_stadium(
                 ..default()
             },
         ));
-
-        // Store points
-        paths.0.push(vertices);
     }
 }
 
@@ -130,7 +136,7 @@ fn spawn_players(
     
     // Iterate over player ids and spawn them
     for player_id in 0..num_players {
-        let starting_pos = &paths.0[player_id][0];
+        let starting_pos = &paths.0[player_id + 1][0];
         commands.spawn((
             components::OnGameScreen,
             components::Player{ 
@@ -166,11 +172,15 @@ fn move_players_along_tracks(
         player.distance += 250. * time.delta_secs();
 
         // Get player path
-        let path = &paths.0[player.handle];
+        let path = &paths.0[player.handle + 1];
 
         // Determine distance between last track point and the next one
-        let next_index = (player.pos_index + 1) % path.len();
+        let next_index = player.pos_index + 1;
         let mut last_point = path[player.pos_index];
+        if next_index == path.len() {
+            transform.translation = last_point;
+            continue;
+        }
         let mut next_point = path[next_index];
         let distance_to_next_point = next_point.distance(last_point);
 
